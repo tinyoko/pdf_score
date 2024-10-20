@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    # environment:
+    #   - DJANGO_SETTINGS_MODULE=pdf_score.settings
+    # command: gunicorn --bind 0.0.0.0:8000 pdf_score.wsgi:application
+    command: python manage.py runserver 0.0.0.0:8000
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8081:80"   # ポート80を8081に変更
+      - "8444:443"  # HTTPSのポートを8444に変更
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web

@@ -1,0 +1,43 @@
+# Python関連
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 環境設定関連
+*.env
+*.venv/
+venv/
+ENV/
+env/
+.venv
+env.py
+
+# SQLite データベース
+db.sqlite3
+
+# Django 静的ファイルとメディアファイル
+/staticfiles/
+/media/
+
+# ログファイル
+*.log
+
+# Docker関連
+*.pid
+.dockerignore
+
+# VSCodeなどのエディタやOSの関連ファイル
+.vscode/
+.idea/
+.DS_Store
+
+# PyCharmやJetBrainsの設定
+*.iml
+.idea/
+
+# Nginx 設定ファイルが機密であれば無視
+# nginx.conf
+
+# その他
+*.bak
+*.swp
