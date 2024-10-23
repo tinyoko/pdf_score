@@ -20,5 +20,6 @@ services:
       - "8444:443"  # HTTPSのポートを8444に変更
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+      - .:/code  # web コンテナと同じディレクトリを共有する設定
     depends_on:
       - web
