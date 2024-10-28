@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ score.title }} - 楽譜表示</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const url = '{{ score.pdf_file.url }}';
+            let pdfDoc = null;
+            let pageNumber = 1;
+            const scale = 1.5;
+            const canvas = document.getElementById('pdf-render');
+            const ctx = canvas.getContext('2d');
+
+            pdfjsLib.getDocument(url).promise.then(pdfDoc_ => {
+                pdfDoc = pdfDoc_;
+                renderPage(pageNumber);
+            }).catch(error => {
+                console.error('PDFの読み込みに失敗しました: ', error);
+            });
+
+            function renderPage(num) {
+                pdfDoc.getPage(num).then(page => {
+                    const viewport = page.getViewport({ scale });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderCtx = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+
+                    page.render(renderCtx).promise.then(() => {
+                        canvas.style.width = 'auto';
+                        canvas.style.height = 'auto';
+                    });
+                }).catch(error => {
+                    console.error('ページのレンダリングに失敗しました: ', error);
+                });
+            }
+
+            const pageNumberInput = document.getElementById('page-number');
+            pageNumberInput.addEventListener('input', (event) => {
+                const newPageNumber = parseInt(event.target.value, 10);
+                if (newPageNumber >= 1 && newPageNumber <= pdfDoc.numPages) {
+                    pageNumber = newPageNumber;
+                    renderPage(pageNumber);
+                }
+            });
+        });
+    </script>
+    <style>
+        #pdf-render {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ score.title }} - 楽譜表示</h1>
+    <div>
+        <label for="page-number">ページ番号: </label>
+        <input type="number" id="page-number" min="1" value="1">
+    </div>
+    <canvas id="pdf-render"></canvas>
+    <br>
+    <a href="{% url 'score_list' %}">楽譜一覧に戻る</a>
+</body>
+</html>

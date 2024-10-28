@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "pdf_viewer",
+    "pv2",
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # 静的ファイルの収�
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "http://162.43.36.98",
+]
