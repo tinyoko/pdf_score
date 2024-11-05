@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "pdf_viewer",
     "pv2",
+    "pv3",
 ]
 
 MIDDLEWARE = [

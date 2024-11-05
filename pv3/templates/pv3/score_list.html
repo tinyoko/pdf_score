@@ -10,10 +10,10 @@
     <ul>
         {% for score in scores %}
             <li>
-                <a href="{% url 'pv2:view_score' score.id %}">{{ score.title }} by {{ score.artist }}</a>
+                <a href="{% url 'pv3:view_score' score.id %}">{{ score.title }} by {{ score.artist }}</a>
             </li>
         {% endfor %}
     </ul>
-    <a href="{% url 'pv2:upload_score' %}">新しい楽譜を登録する</a>
+    <a href="{% url 'pv3:upload_score' %}">新しい楽譜を登録する</a>
 </body>
 </html>

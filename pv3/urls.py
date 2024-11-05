@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = "pv2"  # 名前空間を追加
+app_name = "pv3"  # 名前空間を追加
 
 urlpatterns = [
     path("", views.index, name="index"),  # ホームページとして `index` ビューを設定
