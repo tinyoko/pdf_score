@@ -136,5 +136,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8081",
     "http://127.0.0.1:8081",
-    "http://162.43.36.98",
+    "http://162.43.36.98:8081",
 ]

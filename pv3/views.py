@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Score
 from .forms import ScoreForm
-
+from django.urls import reverse
 
 # ホームページビュー
 def index(request):
@@ -14,7 +14,7 @@ def upload_score(request):
         form = ScoreForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect("score_list")
+            return redirect(reverse("pv3:score_list"))
     else:
         form = ScoreForm()
     return render(request, "pv3/upload_score.html", {"form": form})

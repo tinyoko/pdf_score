@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import Score
 
-# Register your models here.
+# Scoreモデルを管理画面に登録
+admin.site.register(Score)
