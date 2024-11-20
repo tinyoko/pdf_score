@@ -49,6 +49,26 @@
                     renderPage(pageNumber);
                 }
             });
+
+            const audioPlayer = document.getElementById('audio-player');
+            const pageStartTimes = JSON.parse('{{ page_start_times|escapejs }}');
+
+            audioPlayer.addEventListener('timeupdate', () => {
+                const currentTime = audioPlayer.currentTime;
+                let currentPageNum = null;
+
+                for (const [pageNum, startTime] of Object.entries(pageStartTimes)) {
+                    if (startTime !== null && currentTime >= startTime) {
+                        currentPageNum = parseInt(pageNum);
+                    }
+                }
+
+                if (currentPageNum !== null && currentPageNum !== pageNumber) {
+                    pageNumber = currentPageNum;
+                    pageNumberInput.value = pageNumber;
+                    renderPage(pageNumber);
+                }
+            });
         });
     </script>
     <style>
@@ -78,12 +98,14 @@
     <canvas id="pdf-render"></canvas>
     {% if score.audio_file %}
         <h3>音声の再生</h3>
-        <audio controls>
+        <audio id="audio-player" controls>
             <source src="{{ score.audio_file.url }}" type="audio/mpeg">
             お使いのブラウザは音声再生に対応していません。
         </audio>
     {% endif %}
     <br>
     <a href="{% url 'pv3:score_list' %}">楽譜一覧に戻る</a>
+    <br>
+    <a href="{% url 'pv3:edit_page_start_times' score.id %}">ページ開始時間を編集する</a>
 </body>
 </html>
