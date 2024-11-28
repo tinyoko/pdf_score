@@ -51,7 +51,7 @@
             });
 
             const audioPlayer = document.getElementById('audio-player');
-            const pageStartTimes = JSON.parse('{{ page_start_times|escapejs }}');
+            const pageStartTimes = {{ score.page_start_times|safe }};
 
             audioPlayer.addEventListener('timeupdate', () => {
                 const currentTime = audioPlayer.currentTime;
@@ -90,22 +90,19 @@
     </style>
 </head>
 <body>
-    <h1>{{ score.title }} - 楽譜表示</h1>
-    <div>
+    
+    <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+        <a href="{% url 'pv3:edit_page_start_times' score.id %}">ページ開始時間を編集する</a>
         <label for="page-number">ページ番号: </label>
         <input type="number" id="page-number" min="1" value="1">
+        <a href="{% url 'pv3:score_list' %}">楽譜一覧に戻る</a>
     </div>
-    <canvas id="pdf-render"></canvas>
     {% if score.audio_file %}
-        <h3>音声の再生</h3>
-        <audio id="audio-player" controls>
+        <audio id="audio-player" controls style="margin-top: 10px;">
             <source src="{{ score.audio_file.url }}" type="audio/mpeg">
             お使いのブラウザは音声再生に対応していません。
         </audio>
     {% endif %}
-    <br>
-    <a href="{% url 'pv3:score_list' %}">楽譜一覧に戻る</a>
-    <br>
-    <a href="{% url 'pv3:edit_page_start_times' score.id %}">ページ開始時間を編集する</a>
+    <canvas id="pdf-render"></canvas>
 </body>
 </html>
