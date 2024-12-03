@@ -4,14 +4,19 @@ from .forms import ScoreForm, PageStartTimeForm
 from django.urls import reverse
 from PyPDF2 import PdfReader
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 # ホームページビュー
 def index(request):
-    return render(request, "pv3/index.html")
+    datetime_now = datetime.now(ZoneInfo("Asia/Tokyo")).strftime(
+        "%Y年%m月%d日 %H:%M:%S"
+    )
+    return render(request, "pv3/index.html", {"datetime_now": datetime_now})
 
 
-# 楽譜登録用のビュー
+# 楽曲登録用のビュー
 def upload_score(request):
     if request.method == "POST":
         form = ScoreForm(request.POST, request.FILES)
@@ -31,13 +36,13 @@ def upload_score(request):
     return render(request, "pv3/upload_score.html", {"form": form})
 
 
-# 楽譜の一覧を表示するビュー
+# 楽曲の一覧を表示するビュー
 def score_list(request):
     scores = Score.objects.all()
     return render(request, "pv3/score_list.html", {"scores": scores})
 
 
-# 楽譜を表示するビュー
+# 楽曲を表示するビュー
 def view_score(request, score_id):
     score = get_object_or_404(Score, id=score_id)
     return render(
@@ -47,8 +52,22 @@ def view_score(request, score_id):
     )
 
 
-# 楽譜編集用のビュー
-def edit_score(request, score_id):
+# 楽曲を削除するビュー
+def delete_score(request, score_id):
+    score = get_object_or_404(Score, id=score_id)
+    if request.method == "POST":
+        score.delete()
+        return redirect("pv3:score_list")
+    else:
+        return render(
+            request,
+            "pv3/score_confirm_delete.html",
+            {"score": score, "page_start_times": json.dumps(score.page_start_times)},
+        )
+
+
+# 楽曲更新用のビュー
+def update_score(request, score_id):
     score = get_object_or_404(Score, id=score_id)
     if request.method == "POST":
         form = ScoreForm(request.POST, request.FILES, instance=score)
@@ -56,10 +75,10 @@ def edit_score(request, score_id):
             score = form.save(commit=False)
             score.save()
 
-            return redirect("pv3:score_list")
+            return redirect("pv3:view_score", score_id=score.id)
     else:
         form = ScoreForm(instance=score)
-    return render(request, "pv3/upload_score.html", {"form": form})
+    return render(request, "pv3/update_score.html", {"form": form, "score": score})
 
 
 # ページ開始時間編集用のビュー

@@ -90,6 +90,11 @@
     </style>
 </head>
 <body>
+    <form method="POST">
+        {% csrf_token %}
+        <P>この楽曲を削除しても良いですか？</P>
+        <button type="submit">削除</button>
+    </form>
     <h1>{{ score.title }} by {{ score.artist }}</h1>
     <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
         <a href="{% url 'pv3:update_score' score.id %}">楽曲データを更新する</a>
@@ -97,7 +102,6 @@
         <label for="page-number">ページ番号: </label>
         <input type="number" id="page-number" min="1" value="1">
         <a href="{% url 'pv3:score_list' %}">楽譜一覧に戻る</a>
-        <a href="{% url 'pv3:delete_score' score.id %}">削除する</a>
     </div>
     {% if score.audio_file %}
         <audio id="audio-player" controls style="margin-top: 10px;">

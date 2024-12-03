@@ -6,7 +6,7 @@
     <title>{{ score.title }} - ページ開始時間の編集</title>
 </head>
 <body>
-    <h1>{{ score.title }} - ページ開始時間の編集</h1>
+    <h1>{{ score.title }} - {{ score.artist }} - ページ開始時間の編集</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

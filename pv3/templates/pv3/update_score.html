@@ -1,12 +1,11 @@
 {% extends "base/score_base.html" %}
 {% block body %}
-<h2>楽曲を登録する</h2>
+<h2>楽曲データを更新する</h2>
+<a href="{% url 'pv3:view_score' score.id %}">{{ score.title }} by {{ score.artist }}</a>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">登録</button>
+    <button type="submit">更新</button>
 </form>
 <a href="{% url 'pv3:score_list' %}">楽曲一覧に戻る</a>
 {% endblock %}
-
-
