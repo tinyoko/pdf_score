@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from .models import Score
 from .forms import ScoreForm, PageStartTimeForm
 from django.urls import reverse
@@ -17,6 +18,7 @@ def index(request):
 
 
 # 楽曲登録用のビュー
+@login_required
 def upload_score(request):
     if request.method == "POST":
         form = ScoreForm(request.POST, request.FILES)
@@ -37,12 +39,14 @@ def upload_score(request):
 
 
 # 楽曲の一覧を表示するビュー
+@login_required
 def score_list(request):
     scores = Score.objects.all()
     return render(request, "pv3/score_list.html", {"scores": scores})
 
 
 # 楽曲を表示するビュー
+@login_required
 def view_score(request, score_id):
     score = get_object_or_404(Score, id=score_id)
     return render(
@@ -53,6 +57,7 @@ def view_score(request, score_id):
 
 
 # 楽曲を削除するビュー
+@login_required
 def delete_score(request, score_id):
     score = get_object_or_404(Score, id=score_id)
     if request.method == "POST":
@@ -67,6 +72,7 @@ def delete_score(request, score_id):
 
 
 # 楽曲更新用のビュー
+@login_required
 def update_score(request, score_id):
     score = get_object_or_404(Score, id=score_id)
     if request.method == "POST":
@@ -82,6 +88,7 @@ def update_score(request, score_id):
 
 
 # ページ開始時間編集用のビュー
+@login_required
 def edit_page_start_times(request, score_id):
     score = get_object_or_404(Score, id=score_id)
 

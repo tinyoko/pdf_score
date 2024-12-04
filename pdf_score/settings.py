@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "pv3",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8081",
     "http://162.43.36.98:8081",
 ]
+
+# pdf_score/settings.py
+
+LOGIN_REDIRECT_URL = "/pv3/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"

@@ -7,8 +7,15 @@
 </head>
 <body>
     <h1>ドラム練習アプリへようこそ</h1>
-    <P>{{ datetime_now }}</P>
+    <p>{{ datetime_now }}</p>
     <a href="{% url 'pv3:upload_score' %}">楽曲を登録する</a><br>
-    <a href="{% url 'pv3:score_list' %}">楽曲一覧を見る</a>
+    <a href="{% url 'pv3:score_list' %}">楽曲一覧を見る</a><br>
+    
+    {% if user.is_authenticated %}
+        <p>こんにちは、{{ user.username }}さん！</p>
+        <a href="{% url 'logout' %}">ログアウト</a>
+    {% else %}
+        <a href="{% url 'login' %}">ログイン</a>
+    {% endif %}
 </body>
 </html>
