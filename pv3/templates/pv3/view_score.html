@@ -6,18 +6,43 @@
     <title>{{ score.title }} - 楽譜表示</title>
     <link rel="icon" href="data:,"> <!-- favicon.icoリクエストを無視 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://unpkg.com/wavesurfer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@7.0.0/dist/wavesurfer.min.js"></script>
     <style>
         #pdf-render {
             border: 1px solid black;
             display: block;
             margin: 0 auto;
         }
-        #waveform {
+        #waveform-container {
+            position: relative;
             width: 100%;
             height: 128px;
             margin-top: 10px;
-            position: relative;
+        }
+        #waveform {
+            width: 100%;
+            height: 100%;
+        }
+        #markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .marker {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: red;
+        }
+        .marker-label {
+            position: absolute;
+            top: 10px;
+            color: black;
+            font-size: 12px;
         }
         body {
             font-family: Arial, sans-serif;
@@ -43,13 +68,16 @@
         <a href="{% url 'pv3:delete_score' score.id %}">削除する</a>
     </div>
     {% if score.audio_file %}
-        <div id="waveform"></div>
+        <div id="waveform-container">
+            <div id="waveform"></div>
+            <div id="markers"></div>
+        </div>
         <button id="play-pause">再生/一時停止</button>
     {% endif %}
     <canvas id="pdf-render"></canvas>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // PDF.jsの設定
+            // PDF.js の設定
             const url = '{{ score.pdf_file.url }}';
             let pdfDoc = null;
             let pageNumber = 1;
@@ -94,54 +122,72 @@
             });
 
             {% if score.audio_file %}
-            // Wavesurfer.jsの設定
-            let wavesurfer = null; // 再生ボタンのクリックで初期化
+            // Wavesurfer.js の初期化
+            const wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: '#4F4A85',
+                progressColor: '#383351',
+            });
+
+            wavesurfer.load('{{ score.audio_file.url }}');
+
+            // 再生/一時停止ボタンのイベント
             const playPauseButton = document.getElementById('play-pause');
             playPauseButton.addEventListener('click', () => {
-                if (!wavesurfer) {
-                    // 初回クリックで初期化
-                    wavesurfer = WaveSurfer.create({
-                        container: '#waveform',
-                        waveColor: 'skyblue',
-                        progressColor: 'blue',
-                        height: 128
-                    });
-
-                    wavesurfer.load('{{ score.audio_file.url }}');
-
-                    // 再生位置に応じてページを切り替える
-                    const pageStartTimes = {{ page_start_times|safe }};
-                    wavesurfer.on('audioprocess', () => {
-                        const currentTime = wavesurfer.getCurrentTime();
-                        let currentPageNum = null;
-
-                        for (const [pageNum, startTime] of Object.entries(pageStartTimes)) {
-                            if (startTime !== null && currentTime >= startTime) {
-                                currentPageNum = parseInt(pageNum, 10);
-                            }
-                        }
-
-                        if (currentPageNum !== null && currentPageNum !== pageNumber) {
-                            pageNumber = currentPageNum;
-                            pageNumberInput.value = pageNumber;
-                            renderPage(pageNumber);
-                        }
-                    });
-
-                    // 時間表示の更新
-                    const currentTimeDisplay = document.getElementById('current-time-display');
-                    wavesurfer.on('audioprocess', () => {
-                        const currentTime = Math.floor(wavesurfer.getCurrentTime());
-                        const totalTime = Math.floor(wavesurfer.getDuration());
-                        currentTimeDisplay.textContent = `${currentTime} / ${totalTime} 秒`;
-                    });
-
-                    wavesurfer.on('finish', () => {
-                        currentTimeDisplay.textContent = `0 / ${Math.floor(wavesurfer.getDuration())} 秒`;
-                    });
-                }
-                // 再生/一時停止
                 wavesurfer.playPause();
+            });
+
+            // ページ開始時間を基に目印を生成
+            const pageStartTimes = {{ page_start_times|safe }};
+            const markersContainer = document.getElementById('markers');
+            wavesurfer.on('ready', () => {
+                const duration = wavesurfer.getDuration();
+                const waveformWidth = markersContainer.clientWidth;
+
+                Object.entries(pageStartTimes).forEach(([page, startTime]) => {
+                    const x = (startTime / duration) * waveformWidth; // 時間をX座標に変換
+                    const marker = document.createElement('div');
+                    marker.className = 'marker';
+                    marker.style.left = `${x}px`;
+
+                    const label = document.createElement('div');
+                    label.className = 'marker-label';
+                    label.style.left = `${x + 5}px`;
+                    label.textContent = `Page ${page}`;
+
+                    markersContainer.appendChild(marker);
+                    markersContainer.appendChild(label);
+                });
+            });
+
+            // 再生位置に応じてページを切り替える
+            wavesurfer.on('audioprocess', () => {
+                const currentTime = wavesurfer.getCurrentTime();
+                let currentPageNum = pageNumber;
+
+                Object.entries(pageStartTimes).forEach(([page, startTime]) => {
+                    if (currentTime >= startTime) {
+                        currentPageNum = parseInt(page, 10);
+                    }
+                });
+
+                if (currentPageNum !== pageNumber) {
+                    pageNumber = currentPageNum;
+                    pageNumberInput.value = pageNumber;
+                    renderPage(pageNumber);
+                }
+            });
+
+            // 時間表示の更新
+            const currentTimeDisplay = document.getElementById('current-time-display');
+            wavesurfer.on('audioprocess', () => {
+                const currentTime = Math.floor(wavesurfer.getCurrentTime());
+                const totalTime = Math.floor(wavesurfer.getDuration());
+                currentTimeDisplay.textContent = `${currentTime} / ${totalTime} 秒`;
+            });
+
+            wavesurfer.on('finish', () => {
+                currentTimeDisplay.textContent = `0 / ${Math.floor(wavesurfer.getDuration())} 秒`;
             });
             {% endif %}
         });
