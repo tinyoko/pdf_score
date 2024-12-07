@@ -4,9 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ score.title }} - 楽譜表示</title>
+    <link rel="icon" href="data:,"> <!-- favicon.icoリクエストを無視 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js"></script>
+    <style>
+        #pdf-render {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+        #waveform {
+            width: 100%;
+            height: 128px;
+            margin-top: 10px;
+            position: relative;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ score.title }} by {{ score.artist }}</h1>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+        <a href="{% url 'pv3:update_score' score.id %}">楽曲データを更新する</a>
+        <a href="{% url 'pv3:edit_page_start_times' score.id %}">ページ開始時間を編集する</a>
+        <label for="page-number">ページ番号: </label>
+        <input type="number" id="page-number" min="1" value="1">
+        <span id="current-time-display">0 / 0 秒</span>
+        <a href="{% url 'pv3:score_list' %}">楽譜一覧に戻る</a>
+        <a href="{% url 'pv3:delete_score' score.id %}">削除する</a>
+    </div>
+    {% if score.audio_file %}
+        <div id="waveform"></div>
+        <button id="play-pause">再生/一時停止</button>
+    {% endif %}
+    <canvas id="pdf-render"></canvas>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // PDF.jsの設定
             const url = '{{ score.pdf_file.url }}';
             let pdfDoc = null;
             let pageNumber = 1;
@@ -50,68 +93,58 @@
                 }
             });
 
-            const audioPlayer = document.getElementById('audio-player');
-            const pageStartTimes = {{ score.page_start_times|safe }};
-            const currentTimeDisplay = document.getElementById('current-time');
-            let audioDuration = 0;
-            audioPlayer.addEventListener('loadedmetadata', () => {
-                audioDuration = audioPlayer.duration;
-            });
+            {% if score.audio_file %}
+            // Wavesurfer.jsの設定
+            let wavesurfer = null; // 再生ボタンのクリックで初期化
+            const playPauseButton = document.getElementById('play-pause');
+            playPauseButton.addEventListener('click', () => {
+                if (!wavesurfer) {
+                    // 初回クリックで初期化
+                    wavesurfer = WaveSurfer.create({
+                        container: '#waveform',
+                        waveColor: 'skyblue',
+                        progressColor: 'blue',
+                        height: 128
+                    });
 
-            audioPlayer.addEventListener('timeupdate', () => {
-                const currentTime = audioPlayer.currentTime;
-                currentTimeDisplay.textContent = `${Math.floor(currentTime)} 秒 / ${Math.floor(audioDuration)} 秒`;
+                    wavesurfer.load('{{ score.audio_file.url }}');
 
-                let currentPageNum = null;
-                for (const [pageNum, startTime] of Object.entries(pageStartTimes)) {
-                    if (startTime !== null && currentTime >= startTime) {
-                        currentPageNum = parseInt(pageNum);
-                    }
+                    // 再生位置に応じてページを切り替える
+                    const pageStartTimes = {{ page_start_times|safe }};
+                    wavesurfer.on('audioprocess', () => {
+                        const currentTime = wavesurfer.getCurrentTime();
+                        let currentPageNum = null;
+
+                        for (const [pageNum, startTime] of Object.entries(pageStartTimes)) {
+                            if (startTime !== null && currentTime >= startTime) {
+                                currentPageNum = parseInt(pageNum, 10);
+                            }
+                        }
+
+                        if (currentPageNum !== null && currentPageNum !== pageNumber) {
+                            pageNumber = currentPageNum;
+                            pageNumberInput.value = pageNumber;
+                            renderPage(pageNumber);
+                        }
+                    });
+
+                    // 時間表示の更新
+                    const currentTimeDisplay = document.getElementById('current-time-display');
+                    wavesurfer.on('audioprocess', () => {
+                        const currentTime = Math.floor(wavesurfer.getCurrentTime());
+                        const totalTime = Math.floor(wavesurfer.getDuration());
+                        currentTimeDisplay.textContent = `${currentTime} / ${totalTime} 秒`;
+                    });
+
+                    wavesurfer.on('finish', () => {
+                        currentTimeDisplay.textContent = `0 / ${Math.floor(wavesurfer.getDuration())} 秒`;
+                    });
                 }
-
-                if (currentPageNum !== null && currentPageNum !== pageNumber) {
-                    pageNumber = currentPageNum;
-                    pageNumberInput.value = pageNumber;
-                    renderPage(pageNumber);
-                }
+                // 再生/一時停止
+                wavesurfer.playPause();
             });
+            {% endif %}
         });
     </script>
-    <style>
-        #pdf-render {
-            border: 1px solid black;
-            display: block;
-            margin: 0 auto;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 20px;
-        }
-        input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            font-size: 1em;
-        }
-    </style>
-</head>
-<body>
-    <h1>{{ score.title }} by {{ score.artist }}</h1>
-    <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
-        <a href="{% url 'pv3:update_score' score.id %}">楽曲データを更新する</a>
-        <a href="{% url 'pv3:edit_page_start_times' score.id %}">ページ開始時間を編集する</a>
-        <label for="page-number">ページ番号: </label>
-        <input type="number" id="page-number" min="1" value="1">
-        <span id="current-time">0 秒</span>
-        <a href="{% url 'pv3:score_list' %}">楽譜一覧に戻る</a>
-        <a href="{% url 'pv3:delete_score' score.id %}">削除する</a>
-    </div>
-    {% if score.audio_file %}
-        <audio id="audio-player" controls style="margin-top: 10px;">
-            <source src="{{ score.audio_file.url }}" type="audio/mpeg">
-            お使いのブラウザは音声再生に対応していません。
-        </audio>
-    {% endif %}
-    <canvas id="pdf-render"></canvas>
 </body>
 </html>
