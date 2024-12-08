@@ -1,21 +1,12 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ドラム練習アプリ</title>
-</head>
-<body>
-    <h1>ドラム練習アプリへようこそ</h1>
+{% extends "base/score_base.html" %}
+{% block body %}
+{% if user.is_authenticated %}
+    <p>こんにちは、{{ user.username }}さん！</p>
+    <a href="{% url 'logout' %}">ログアウト</a>
     <p>{{ datetime_now }}</p>
     <a href="{% url 'pv3:upload_score' %}">楽曲を登録する</a><br>
     <a href="{% url 'pv3:score_list' %}">楽曲一覧を見る</a><br>
-    
-    {% if user.is_authenticated %}
-        <p>こんにちは、{{ user.username }}さん！</p>
-        <a href="{% url 'logout' %}">ログアウト</a>
-    {% else %}
-        <a href="{% url 'login' %}">ログイン</a>
-    {% endif %}
-</body>
-</html>
+{% else %}
+    <a href="{% url 'login' %}">ログイン</a>
+{% endif %}
+{% endblock %}

@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ドラム練習アプリ</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <h1><a href="{% url 'pv3:index' %}">ドラム練習アプリ</a></h1>
-    {% block body %}
-    {% endblock %}
+    <div class="container">
+        {% block body %}
+        {% endblock %}
+    </div>
 </body>
 </html>
