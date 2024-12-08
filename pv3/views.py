@@ -7,6 +7,7 @@ from PyPDF2 import PdfReader
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import mimetypes
 
 
 # ホームページビュー
@@ -26,9 +27,32 @@ def upload_score(request):
             score = form.save(commit=False)
             score.save()
 
-            # PDFのページ数を取得し、各ページの開始時間をデフォルトで空の状態に設定
+            # アップロードされた音声ファイルがMP3形式か確認
+            if score.audio_file:
+                mime_type, _ = mimetypes.guess_type(score.audio_file.path)
+                if mime_type != "audio/mpeg":
+                    form.add_error(
+                        "audio_file", "音声ファイルはMP3形式である必要があります。"
+                    )
+                    return render(request, "pv3/upload_score.html", {"form": form})
+
+            # PDFのページ数を取得し、各ページの開始時間をデフォルトで設定
             reader = PdfReader(score.pdf_file)
-            page_start_times = {i + 1: None for i in range(len(reader.pages))}
+            num_pages = len(reader.pages)
+
+            # 音声ファイルの総再生時間を取得（存在する場合）
+            audio_duration = score.get_audio_duration() if score.audio_file else 0
+
+            if audio_duration > 0:
+                # 最初と最後のページを設定
+                page_start_times = {1: 0, num_pages: audio_duration}
+                # その他のページを逆順で設定
+                for i in range(num_pages - 1, 1, -1):
+                    page_start_times[i] = page_start_times[i + 1] - 3
+            else:
+                # 音声ファイルがない場合、デフォルトでNoneを設定
+                page_start_times = {i + 1: None for i in range(num_pages)}
+
             score.page_start_times = page_start_times
             score.save()
 
@@ -111,11 +135,6 @@ def edit_page_start_times(request, score_id):
         form = PageStartTimeForm(
             num_pages=score.get_num_pages(), page_start_times=score.page_start_times
         )
-
-    # フォームの初期値を設定してレンダリング
-    for key, value in score.page_start_times.items():
-        if value is not None:
-            form.fields[f"page_{key}_start_time"].initial = value
 
     return render(
         request, "pv3/edit_page_start_times.html", {"form": form, "score": score}

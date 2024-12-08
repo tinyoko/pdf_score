@@ -4,3 +4,4 @@ requests
 python-dotenv
 isodate
 PyPDF2
+mutagen
