@@ -12,6 +12,9 @@ env/
 .venv
 env.py
 
+# SQLite データベース
+db.sqlite3
+
 # Django 静的ファイルとメディアファイル
 /staticfiles/
 /static/
