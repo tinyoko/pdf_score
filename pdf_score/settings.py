@@ -27,7 +27,13 @@ SECRET_KEY = "django-insecure--f@d2iz6cwbut3hc3-fs9lh_+i2=804m%c^3=t$(-!!fw%7323
 DEBUG = True
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ["162.43.36.98", "localhost"]
+ALLOWED_HOSTS = [
+    "162.43.36.98",
+    "localhost",
+    "djartipy.com",
+    "www.djartipy.com",
+    "drumtabs.djartipy.com"
+]
 
 
 # Application definition
@@ -133,13 +139,26 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# Login settings
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/pv3/'
+LOGOUT_REDIRECT_URL = '/pv3/'
+
+# CSRF設定
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8081",
     "http://127.0.0.1:8081",
     "http://162.43.36.98:8081",
+    "https://djartipy.com:8444",
+    "https://www.djartipy.com:8444",
+    "http://djartipy.com:8082",
+    "http://www.djartipy.com:8082",
+    'https://drumtabs.djartipy.com',
+    'http://drumtabs.djartipy.com',
 ]
 
-# pdf_score/settings.py
-
-LOGIN_REDIRECT_URL = "/pv3/"
-LOGOUT_REDIRECT_URL = "/accounts/login/"
+# セキュリティ設定
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True

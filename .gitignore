@@ -12,12 +12,14 @@ env/
 .venv
 env.py
 
-# SQLite データベース
-db.sqlite3
-
 # Django 静的ファイルとメディアファイル
 /staticfiles/
+/static/
 /media/
+
+# 静的ファイル
+staticfiles/
+media/
 
 # ログファイル
 *.log
@@ -34,6 +36,19 @@ db.sqlite3
 # PyCharmやJetBrainsの設定
 *.iml
 .idea/
+
+# SSL/TLS Certificates
+/var/www/certbot/
+*.pem
+*.key
+*.crt
+*.csr
+/etc/letsencrypt/
+.well-known/
+
+# SSL証明書関連
+ssl/
+/etc/nginx/ssl/
 
 # Nginx 設定ファイルが機密であれば無視
 # nginx.conf
