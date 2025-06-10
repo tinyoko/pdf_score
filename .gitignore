@@ -11,6 +11,7 @@ ENV/
 env/
 .venv
 env.py
+venv_local/
 
 # SQLite データベース
 db.sqlite3

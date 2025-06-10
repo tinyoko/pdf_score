@@ -5,3 +5,4 @@ python-dotenv
 isodate
 PyPDF2
 mutagen
+django-environ

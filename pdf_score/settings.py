@@ -12,22 +12,50 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
+#.env ファイルを読み込む
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# 環境変数から設定を読み込む
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+
+# データベース設定の例
+DATABASES = {
+    'default': env.db_url(default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'))
+}
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--f@d2iz6cwbut3hc3-fs9lh_+i2=804m%c^3=t$(-!!fw%7323"
+# SECRET_KEY = XXX .envから読み込み
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = XXX .envから読み込み
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ["162.43.36.98", "localhost"]
+# ALLOWED_HOSTS = XXX .envから読み込み
+
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
 
 # Application definition
@@ -74,15 +102,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "pdf_score.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
 
 
 # Password validation
