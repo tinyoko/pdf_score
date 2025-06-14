@@ -17,14 +17,10 @@ services:
     image: nginx:latest
     container_name: nginx_server
     ports:
-      - "80:80"     # 標準HTTPポート
-      - "443:443"   # 標準HTTPSポート
+      - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf
       - .:/code
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /etc/ssl/private/djartipy:/etc/nginx/ssl:ro
-      - ./certbot:/var/www/certbot
     depends_on:
       - web
     networks:
@@ -33,6 +29,3 @@ services:
 networks:
   app_network:
     driver: bridge
-
-volumes:
-  ssl:

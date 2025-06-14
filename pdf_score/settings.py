@@ -12,29 +12,49 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# .envファイルから環境変数を読み込む
+# .envファイルはプロジェクトのルートディレクトリ(manage.pyと同じ階層)に配置します。
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--f@d2iz6cwbut3hc3-fs9lh_+i2=804m%c^3=t$(-!!fw%7323"
+# 環境変数からSECRET_KEYを読み込む。なければ開発用のデフォルト値を使用。
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure--f@d2iz6cwbut3hc3-fs9lh_+i2=804m%c^3=t$(-!!fw%7323")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# 環境変数からDEBUG値を読み込む。True/Falseの文字列をブール値に変換。
+# デフォルトは開発用にTrue。
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-# ALLOWED_HOSTS = []
-ALLOWED_HOSTS = [
+ALLOWED_HOSTS_COMMON = [
     "162.43.36.98",
-    "localhost",
     "djartipy.com",
     "www.djartipy.com",
     "drumtabs.djartipy.com"
 ]
 
+if DEBUG:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"] + ALLOWED_HOSTS_COMMON
+else:
+    # 本番環境では環境変数から追加のホストを読み込むか、
+    # またはこのリストを本番用に調整します。
+    # 例: ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") + ALLOWED_HOSTS_COMMON
+    # 環境変数が設定されていない場合は、ALLOWED_HOSTS_COMMON のみになります。
+    # DJANGO_ALLOWED_HOSTS="your.production.domain.com,another.domain.com" のように設定
+    production_hosts_str = os.getenv("DJANGO_ALLOWED_HOSTS")
+    if production_hosts_str:
+        # カンマ区切りの文字列をリストに変換し、各要素の空白を除去
+        additional_hosts = [host.strip() for host in production_hosts_str.split(',') if host.strip()]
+        ALLOWED_HOSTS = additional_hosts + ALLOWED_HOSTS_COMMON
+    else:
+        ALLOWED_HOSTS = ALLOWED_HOSTS_COMMON
 
 # Application definition
 
@@ -144,21 +164,42 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/pv3/'
 LOGOUT_REDIRECT_URL = '/pv3/'
 
-# CSRF設定
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8081",
-    "http://127.0.0.1:8081",
-    "http://162.43.36.98:8081",
+# CSRF設定 (ベースとなるオリジン)
+CSRF_TRUSTED_ORIGINS_BASE = [
+    # 本番環境で信頼するHTTPSオリジン
     "https://djartipy.com:8444",
     "https://www.djartipy.com:8444",
-    "http://djartipy.com:8082",
+    "https://drumtabs.djartipy.com", # 本番用HTTPS
+]
+
+# 開発時にのみ追加で許可する可能性のあるオリジン (必要に応じて)
+CSRF_TRUSTED_ORIGINS_DEV_ONLY = [
+    "http://localhost:8081", # 以前のNginx設定用など
+    "http://127.0.0.1:8081",
+    "http://162.43.36.98:8081", # サーバーIPへのHTTPアクセス用 (開発時)
+    "http://djartipy.com:8082",    # ドメインへのHTTPアクセス用 (開発時)
     "http://www.djartipy.com:8082",
-    'https://drumtabs.djartipy.com',
-    'http://drumtabs.djartipy.com',
 ]
 
 # セキュリティ設定
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+
+if DEBUG:
+    # 開発環境用の設定
+    # 本番用HTTPSオリジン + 開発用HTTPオリジン + ローカルNginx用オリジン
+    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_BASE + CSRF_TRUSTED_ORIGINS_DEV_ONLY + [
+        "http://localhost", # Nginx開発環境用
+        "http://127.0.0.1", # Nginx開発環境用
+    ]
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # 本番環境用の設定
+    # 本番ではHTTPSのオリジンのみを信頼するようにフィルタリングすることを推奨
+    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_BASE
+    # 必要に応じて、明示的に本番用ドメインのHTTPSオリジンを追加
+    # CSRF_TRUSTED_ORIGINS.append("https://drumtabs.djartipy.com")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
