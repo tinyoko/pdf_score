@@ -1,26 +1,32 @@
 {
-	"name": "Django Development Container",
-	// Docker Composeファイルとサービス名を指定
-	"dockerComposeFile": [
-		"../docker-compose.dev.yml" // プロジェクトルートからの相対パス
-	],
-	"service": "web", // docker-compose.dev.yml で定義されているサービス名
-	"workspaceFolder": "/code", // コンテナ内のワークスペースフォルダ
+    "name": "Django Development Container",
+    // Docker Composeファイルとサービス名を指定
+    "dockerComposeFile": [
+        "../docker-compose.dev.yml"
+    ],
+    "service": "web",
+    "workspaceFolder": "/code",
 
-	// VSCodeの設定
-	"settings": {
-		"python.defaultInterpreterPath": "/opt/venv/bin/python",
-		"python.pythonPath": "/opt/venv/bin/python" // 非推奨だが念のため
-	},
+    // VSCodeの設定
+    "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python",
+        "python.pythonPath": "/opt/venv/bin/python"
+    },
 
-	// インストールするVSCode拡張機能
-	"extensions": [
-		"ms-python.python",
-		"ms-python.vscode-pylance"
-	],
+    // インストールするVSCode拡張機能
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "Google.gemini-code-assist" // ← これを追記しました
+    ],
 
-	// コンテナビルド後、VSCodeアタッチ後に実行するコマンド (任意)
-	// "postCreateCommand": "echo 'Container created and VS Code attached!'",
+    // コンテナにインストールする共通機能 (Gitなど)
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
 
-	"remoteUser": "root" // Dockerfileでユーザー指定がなければrootが一般的
+    // コンテナビルド後、VSCodeアタッチ後に実行するコマンド (任意)
+    // "postCreateCommand": "echo 'Container created and VS Code attached!'",
+
+    "remoteUser": "root"
 }

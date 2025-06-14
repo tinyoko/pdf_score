@@ -164,12 +164,14 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/pv3/'
 LOGOUT_REDIRECT_URL = '/pv3/'
 
-# CSRF設定 (ベースとなるオリジン)
-CSRF_TRUSTED_ORIGINS_BASE = [
-    # 本番環境で信頼するHTTPSオリジン
-    "https://djartipy.com:8444",
-    "https://www.djartipy.com:8444",
-    "https://drumtabs.djartipy.com", # 本番用HTTPS
+# CSRF設定
+# 主な本番環境オリジン (スキーム + ホスト名)。
+# アプリが標準ポート以外でアクセスされ、そのポートがHostヘッダーに含まれる場合は、
+# ここに含めるか、(推奨) .env ファイルで DJANGO_CSRF_TRUSTED_ORIGINS を設定してください。
+CSRF_TRUSTED_ORIGINS_PRIMARY = [
+    "https://drumtabs.djartipy.com",
+    # "https://djartipy.com", # このアプリでこのドメインも使用する場合はコメント解除
+    # "https://www.djartipy.com", # このアプリでこのドメインも使用する場合はコメント解除
 ]
 
 # 開発時にのみ追加で許可する可能性のあるオリジン (必要に応じて)
@@ -177,7 +179,7 @@ CSRF_TRUSTED_ORIGINS_DEV_ONLY = [
     "http://localhost:8081", # 以前のNginx設定用など
     "http://127.0.0.1:8081",
     "http://162.43.36.98:8081", # サーバーIPへのHTTPアクセス用 (開発時)
-    "http://djartipy.com:8082",    # ドメインへのHTTPアクセス用 (開発時)
+    "http://djartipy.com:8082", # ドメインへのHTTPアクセス用 (開発時)
     "http://www.djartipy.com:8082",
 ]
 
@@ -186,20 +188,26 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if DEBUG:
     # 開発環境用の設定
-    # 本番用HTTPSオリジン + 開発用HTTPオリジン + ローカルNginx用オリジン
-    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_BASE + CSRF_TRUSTED_ORIGINS_DEV_ONLY + [
-        "http://localhost", # Nginx開発環境用
-        "http://127.0.0.1", # Nginx開発環境用
+    # 主なオリジン (本番に近いURLをローカルでテストする場合の参照用) + 開発専用オリジン + ローカルサーバーアクセス
+    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_PRIMARY + CSRF_TRUSTED_ORIGINS_DEV_ONLY + [
+        "http://localhost",      # docker-compose.dev.yml の Nginx 用 (ポート 80)
+        "http://127.0.0.1",      # docker-compose.dev.yml の Nginx 用 (ポート 80)
+        "http://localhost:8000", # Django の runserver 用
+        "http://127.0.0.1:8000", # Django の runserver 用
     ]
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 else:
     # 本番環境用の設定
-    # 本番ではHTTPSのオリジンのみを信頼するようにフィルタリングすることを推奨
-    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_BASE
-    # 必要に応じて、明示的に本番用ドメインのHTTPSオリジンを追加
-    # CSRF_TRUSTED_ORIGINS.append("https://drumtabs.djartipy.com")
+    # .env ファイルからの DJANGO_CSRF_TRUSTED_ORIGINS を優先 (設定されていれば)
+    prod_csrf_origins_env = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS")
+    if prod_csrf_origins_env:
+        CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in prod_csrf_origins_env.split(',') if origin.strip()]
+    else:
+        # 環境変数が設定されていない場合は、主要リストにフォールバック (環境変数の設定を推奨)
+        CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_PRIMARY
+
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
