@@ -19,14 +19,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # .envファイルから環境変数を読み込む
 # .envファイルはプロジェクトのルートディレクトリ(manage.pyと同じ階層)に配置します。
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # 環境変数からSECRET_KEYを読み込む。なければ開発用のデフォルト値を使用。
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure--f@d2iz6cwbut3hc3-fs9lh_+i2=804m%c^3=t$(-!!fw%7323")
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure--f@d2iz6cwbut3hc3-fs9lh_+i2=804m%c^3=t$(-!!fw%7323",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 環境変数からDEBUG値を読み込む。True/Falseの文字列をブール値に変換。
@@ -37,7 +40,7 @@ ALLOWED_HOSTS_COMMON = [
     "162.43.36.98",
     "djartipy.com",
     "www.djartipy.com",
-    "drumtabs.djartipy.com"
+    "drumtabs.djartipy.com",
 ]
 
 if DEBUG:
@@ -51,7 +54,9 @@ else:
     production_hosts_str = os.getenv("DJANGO_ALLOWED_HOSTS")
     if production_hosts_str:
         # カンマ区切りの文字列をリストに変換し、各要素の空白を除去
-        additional_hosts = [host.strip() for host in production_hosts_str.split(',') if host.strip()]
+        additional_hosts = [
+            host.strip() for host in production_hosts_str.split(",") if host.strip()
+        ]
         ALLOWED_HOSTS = additional_hosts + ALLOWED_HOSTS_COMMON
     else:
         ALLOWED_HOSTS = ALLOWED_HOSTS_COMMON
@@ -160,15 +165,16 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Login settings
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/pv3/'
-LOGOUT_REDIRECT_URL = '/pv3/'
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/pv3/"
+LOGOUT_REDIRECT_URL = "/pv3/"
 
 # CSRF設定
 # 主な本番環境オリジン (スキーム + ホスト名)。
 # アプリが標準ポート以外でアクセスされ、そのポートがHostヘッダーに含まれる場合は、
 # ここに含めるか、(推奨) .env ファイルで DJANGO_CSRF_TRUSTED_ORIGINS を設定してください。
 CSRF_TRUSTED_ORIGINS_PRIMARY = [
+    "https://drumtabs.djartipy.com:8443",  # ポート8443を追加
     "https://drumtabs.djartipy.com",
     # "https://djartipy.com", # このアプリでこのドメインも使用する場合はコメント解除
     # "https://www.djartipy.com", # このアプリでこのドメインも使用する場合はコメント解除
@@ -176,25 +182,29 @@ CSRF_TRUSTED_ORIGINS_PRIMARY = [
 
 # 開発時にのみ追加で許可する可能性のあるオリジン (必要に応じて)
 CSRF_TRUSTED_ORIGINS_DEV_ONLY = [
-    "http://localhost:8081", # 以前のNginx設定用など
+    "http://localhost:8081",  # 以前のNginx設定用など
     "http://127.0.0.1:8081",
-    "http://162.43.36.98:8081", # サーバーIPへのHTTPアクセス用 (開発時)
-    "http://djartipy.com:8082", # ドメインへのHTTPアクセス用 (開発時)
+    "http://162.43.36.98:8081",  # サーバーIPへのHTTPアクセス用 (開発時)
+    "http://djartipy.com:8082",  # ドメインへのHTTPアクセス用 (開発時)
     "http://www.djartipy.com:8082",
 ]
 
 # セキュリティ設定
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 if DEBUG:
     # 開発環境用の設定
     # 主なオリジン (本番に近いURLをローカルでテストする場合の参照用) + 開発専用オリジン + ローカルサーバーアクセス
-    CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_PRIMARY + CSRF_TRUSTED_ORIGINS_DEV_ONLY + [
-        "http://localhost",      # docker-compose.dev.yml の Nginx 用 (ポート 80)
-        "http://127.0.0.1",      # docker-compose.dev.yml の Nginx 用 (ポート 80)
-        "http://localhost:8000", # Django の runserver 用
-        "http://127.0.0.1:8000", # Django の runserver 用
-    ]
+    CSRF_TRUSTED_ORIGINS = (
+        CSRF_TRUSTED_ORIGINS_PRIMARY
+        + CSRF_TRUSTED_ORIGINS_DEV_ONLY
+        + [
+            "http://localhost",  # docker-compose.dev.yml の Nginx 用 (ポート 80)
+            "http://127.0.0.1",  # docker-compose.dev.yml の Nginx 用 (ポート 80)
+            "http://localhost:8000",  # Django の runserver 用
+            "http://127.0.0.1:8000",  # Django の runserver 用
+        ]
+    )
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
@@ -203,7 +213,11 @@ else:
     # .env ファイルからの DJANGO_CSRF_TRUSTED_ORIGINS を優先 (設定されていれば)
     prod_csrf_origins_env = os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS")
     if prod_csrf_origins_env:
-        CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in prod_csrf_origins_env.split(',') if origin.strip()]
+        CSRF_TRUSTED_ORIGINS = [
+            origin.strip()
+            for origin in prod_csrf_origins_env.split(",")
+            if origin.strip()
+        ]
     else:
         # 環境変数が設定されていない場合は、主要リストにフォールバック (環境変数の設定を推奨)
         CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS_PRIMARY
