@@ -1,32 +1,51 @@
 {
     "name": "Django Development Container",
-    // Docker Composeファイルとサービス名を指定
+
+    // .devcontainer/initialize.sh によって .env の設定に基づき
+    // docker-compose.selected.yml が適切なファイルへのシンボリックリンクとして作成される
     "dockerComposeFile": [
-        "../docker-compose.dev.yml"
+        "docker-compose.selected.yml" // initialize.shが .devcontainer 内に作成するシンボリックリンク
     ],
     "service": "web",
     "workspaceFolder": "/code",
 
+    // コンテナビルド前にホストで実行するコマンド
+    // このスクリプトは .devcontainer ディレクトリ内に配置
+    "initializeCommand": "bash .devcontainer/initialize.sh",
+
     // VSCodeの設定
     "settings": {
         "python.defaultInterpreterPath": "/opt/venv/bin/python",
-        "python.pythonPath": "/opt/venv/bin/python"
+        "python.pythonPath": "/opt/venv/bin/python", // Pylanceが参照
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.linting.pylintEnabled": true,
+        "python.linting.enabled": true,
+        "python.formatting.provider": "black", // 例: black フォーマッターを使用
+        "files.eol": "\n" // ファイルの改行コードをLFに統一
     },
 
     // インストールするVSCode拡張機能
     "extensions": [
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "Google.gemini-code-assist" // ← これを追記しました
+        "Google.gemini-code-assist",
+        "ms-azuretools.vscode-docker", // Docker拡張機能
+        "batisteo.vscode-django",      // Django拡張機能
+        "bierner.markdown-preview-github-styles" // Markdownプレビュー用
     ],
 
     // コンテナにインストールする共通機能 (Gitなど)
     "features": {
-        "ghcr.io/devcontainers/features/git:1": {}
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/common-utils:2": { // 기본적인 CLI 툴 (curl, wget, sudo 등)
+            "installZsh": "false", // zshは任意
+            "configureZshAsDefaultShell": "false"
+        }
     },
 
     // コンテナビルド後、VSCodeアタッチ後に実行するコマンド (任意)
-    // "postCreateCommand": "echo 'Container created and VS Code attached!'",
+    "postCreateCommand": "pip install --no-cache-dir -r requirements.txt && echo 'Dependencies installed. Container created and VS Code attached!'",
+    // "postAttachCommand": "python manage.py migrate", // 任意: アタッチ時にマイグレーション実行
 
-    "remoteUser": "root"
+    "remoteUser": "vscode" // Dockerfileで作成した非rootユーザー名
 }
